@@ -1,0 +1,14 @@
+---
+  struct_name: Ast
+  use: |
+    use lexer::Token;
+  derives:
+    - Debug
+    - Clone
+  variants:
+    -
+      name: Identifier
+      members:
+        -
+          name: token
+          type: Token

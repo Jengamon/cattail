@@ -1,0 +1,7 @@
+[package]
+name = "cattail"
+version = "0.1.0"
+authors = ["Bobho"]
+edition = "2018"
+
+[dependencies]
