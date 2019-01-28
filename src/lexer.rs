@@ -178,6 +178,7 @@ impl<'a> Lexer<'a> {
             ',' => Ok((LexerToken::Symbol(Symbol::Comma), self.create_span())),
             '[' => Ok((LexerToken::Symbol(Symbol::LBracket), self.create_span())),
             ']' => Ok((LexerToken::Symbol(Symbol::RBracket), self.create_span())),
+            '^' => Ok((LexerToken::Symbol(Symbol::Caret), self.create_span())),
             c if c.is_ascii_lowercase() || "?_!@".contains(c) => self.identifier(c),
             c if c.is_ascii_uppercase() => self.typename(c),
             '0' => match self.peek() {

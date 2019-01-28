@@ -1,4 +1,4 @@
-five + three + six
+3 + 2 - 1
 
 point = new object {
   x: (3).sp,

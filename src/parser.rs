@@ -6,6 +6,7 @@ pub enum ParserError {
     Unspecified(String, Span),
     NoMoreTokens,
     NoParseletFound(String, Token),
+    InvalidItem(Expr),
 }
 
 pub struct Parser {
@@ -26,9 +27,13 @@ fn variable_reference_prslt(p: &mut Parser, t: Token) -> ParserResult<Expr> {
     Ok(Identifier::new_expr((t.0.as_identifier().unwrap(), t.1)))
 }
 
+fn number_prslt(p: &mut Parser, t: Token) -> ParserResult<Expr> {
+    Ok(Number::new_expr((t.0.as_number().unwrap(), t.1)))
+}
+
 fn binary_prslt(left: bool, prec: u32) -> (Box<InfixParselet>, u32) {
-    (Box::new(|p: &mut Parser, t: Token, lhs: Expr| -> ParserResult<Expr> {
-        let rhs = p.expression(if left { prec } else { prec - 1 })?;
+    (Box::new(move |p: &mut Parser, t: Token, lhs: Expr| -> ParserResult<Expr> {
+        let rhs = p.pratt_expression(if left { prec } else { prec - 1 })?;
         Ok(Binary::new_expr(lhs, rhs, t))
     }), prec)
 }
@@ -46,18 +51,33 @@ impl Parser {
         unimplemented!()
     }
 
+    pub fn assignment(&mut self) -> ParserResult<Stat> {
+        let item = self.expression()?;
+        match item {
+            ref i if i.is_path() => {
+                let path = i.as_path().unwrap(); // Guaranteed
+                Ok(Assignment::new_stat(path, self.expression()?))
+            },
+            o => Err(ParserError::InvalidItem(o))
+        }
+    }
+
     fn get_prefix_parselet(tok: &Token) -> Option<Box<PrefixParselet>> {
         match tok {
             &(LexerToken::Keyword(Keyword::New), _) => Some(Box::new(new_object_prslt)),
             &(LexerToken::Identifier(_), _) => Some(Box::new(variable_reference_prslt)),
+            &(LexerToken::Number(_), _) => Some(Box::new(number_prslt)),
             _ => None
         }
     }
 
     fn get_infix_parselet(tok: &Token) -> Option<(Box<InfixParselet>, u32)> {
         match tok {
-            &(LexerToken::Symbol(Symbol::Plus), _) => Some(binary_prslt(false, 10)),
-            &(LexerToken::Symbol(Symbol::Asterisk), _) => Some(binary_prslt(false, 20)),
+            &(LexerToken::Symbol(Symbol::Plus), _) => Some(binary_prslt(true, 10)),
+            &(LexerToken::Symbol(Symbol::Minus), _) => Some(binary_prslt(true, 10)),
+            &(LexerToken::Symbol(Symbol::Asterisk), _) => Some(binary_prslt(true, 20)),
+            &(LexerToken::Symbol(Symbol::ForwardSlash), _) => Some(binary_prslt(true, 20)),
+            &(LexerToken::Symbol(Symbol::Caret), _) => Some(binary_prslt(false, 30)),
             _ => None
         }
     }

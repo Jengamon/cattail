@@ -35,7 +35,7 @@ pub enum Symbol {
     Plus,
     PlusEqual,
     LT, GT, LTEqual, GTEqual,
-    Not, NotEqual,
+    Not, NotEqual, Caret,
 }
 
 #[derive(Debug, Clone)]
@@ -55,6 +55,13 @@ impl LexerToken {
     pub fn as_identifier(&self) -> Option<String> {
         match self {
             &LexerToken::Identifier(ref s) => Some(s.clone()),
+            _ => None
+        }
+    }
+
+    pub fn as_number(&self) -> Option<f64> {
+        match self {
+            &LexerToken::Number(ref s) => s.parse().ok(),
             _ => None
         }
     }

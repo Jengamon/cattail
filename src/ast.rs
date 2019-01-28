@@ -37,12 +37,12 @@ pub struct Return {
 
 #[derive(Debug, Clone)]
 pub struct Assignment {
-	target: Expr,
+	target: Path,
 	value: Expr,
 }
 
 impl Assignment {
-	pub fn new_stat(target: Expr, value: Expr) -> Stat {
+	pub fn new_stat(target: Path, value: Expr) -> Stat {
 		Stat::Assignment(Assignment {
 			target, value,
 		})
@@ -52,13 +52,13 @@ impl Assignment {
 #[derive(Debug, Clone)]
 pub enum Expr {
 	Identifier(Identifier),
-	Integer(Integer),
-	Float(Float),
+	Number(Number),
 	SubAccess(SubAccess),
 	Call(Call),
 	NewObject(NewObject),
 	Function(Function),
 	Binary(Binary),
+	Path(Path),
 }
 
 impl Expr {
@@ -67,6 +67,16 @@ impl Expr {
 	}
 
 	pub fn as_identifier(&self) -> Option<Identifier> {
+		unimplemented!()
+	}
+
+	// TODO Allow Identifiers as Paths
+	pub fn is_path(&self) -> bool {
+		unimplemented!()
+	}
+
+	// TODO Provide a conversion from Identifier to path
+	pub fn as_path(&self) -> Option<Path> {
 		unimplemented!()
 	}
 
@@ -110,16 +120,31 @@ impl Binary {
 }
 
 #[derive(Debug, Clone)]
-pub struct Integer {
-	tok: Token,
-	number: i64
+pub struct Number {
+	number: WithSpan<f64>
+}
+
+impl Number {
+	pub fn new_expr(number: WithSpan<f64>) -> Expr {
+		Expr::Number(Number {
+			number,
+		})
+	}
 }
 
 #[derive(Debug, Clone)]
-pub struct Float {
-	tok: Token,
-	number: f64
+pub struct Path {
+    elements: WithSpan<Vec<String>>,
 }
+
+impl Path {
+	pub fn new_expr(elements: WithSpan<Vec<String>>) -> Expr {
+		Expr::Path(Path {
+			elements,
+		})
+	}
+}
+
 
 #[derive(Debug, Clone)]
 pub struct Call {
